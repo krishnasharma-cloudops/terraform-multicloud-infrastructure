@@ -1,0 +1,21 @@
+name: Validate multicloud Terraform stacks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        stack: [azure, aws, gcp]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+      - run: terraform fmt -recursive && terraform fmt -check -recursive
+      - run: terraform -chdir=stacks/${{ matrix.stack }} init -backend=false
+      - run: terraform -chdir=stacks/${{ matrix.stack }} validate
